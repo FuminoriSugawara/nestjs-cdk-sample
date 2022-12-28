@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  nestjs-cdk-sample:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: development
+    tty: true
+    environment:
+      TZ: 'UTC'
+    ports:
+      - '3081:3000'
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    networks:
+      - default
+  nestjs-cdk-sample-prod:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: production
+    tty: true
+    environment:
+      TZ: 'UTC'
+    ports:
+      - '3082:3000'
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    networks:
+      - default
+
+

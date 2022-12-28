@@ -1,0 +1,1 @@
+This repository is a sample of building a NestJS application with AWS Fargate using CDK v2.
