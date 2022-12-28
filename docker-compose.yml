@@ -8,6 +8,7 @@ services:
     tty: true
     environment:
       TZ: 'UTC'
+      IMAGE_TAG: 'v0.0.1'
     ports:
       - '3081:3000'
     volumes:
