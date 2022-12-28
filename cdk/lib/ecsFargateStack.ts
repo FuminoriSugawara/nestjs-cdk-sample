@@ -6,13 +6,13 @@ import {
   aws_elasticloadbalancingv2 as elbv2,
   aws_logs as log,
   Stack,
-  StackProps
-} from "aws-cdk-lib";
-import { DockerImageName, ECRDeployment } from "cdk-ecr-deployment";
-import { resolve } from "path";
-import { Repository } from "aws-cdk-lib/aws-ecr";
-import { FargateService } from "aws-cdk-lib/aws-ecs";
-import { DockerImageAsset, Platform } from "aws-cdk-lib/aws-ecr-assets";
+  StackProps,
+} from 'aws-cdk-lib';
+import { DockerImageName, ECRDeployment } from 'cdk-ecr-deployment';
+import { resolve } from 'path';
+import { Repository } from 'aws-cdk-lib/aws-ecr';
+import { FargateService } from 'aws-cdk-lib/aws-ecs';
+import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 
 export interface EcsFargateStackProps extends StackProps {
   vpc: ec2.Vpc;
@@ -73,13 +73,18 @@ export class EcsFargateStack extends Stack {
       memoryLimitMiB: 1024,
       cpu: 512,
     });
+    // LogGroup
+    const logGroup = new log.LogGroup(this, 'LogGroup', {
+      logGroupName: props.projectName + 'LogGroup',
+      retention: log.RetentionDays.INFINITE,
+    });
     // Container
     const container = taskDefinition.addContainer('AppContainer', {
       image,
       containerName: props.projectName + 'AppContainer',
       logging: ecs.LogDrivers.awsLogs({
         streamPrefix: 'NestApp',
-        logRetention: log.RetentionDays.ONE_MONTH,
+        logGroup,
       }),
       environment: {
         IMAGE_TAG: process.env.IMAGE_TAG!,

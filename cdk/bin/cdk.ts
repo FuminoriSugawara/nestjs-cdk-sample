@@ -1,25 +1,25 @@
 #!/usr/bin/env node
-import "source-map-support/register";
-import * as cdk from "aws-cdk-lib";
-import { EcsFargateStack } from "../lib/ecsFargateStack";
-import { SharedInfraStack } from "../lib/sharedInfraStack";
-import { config } from "dotenv";
-import { CloudFrontStack } from "../lib/cloudFrontStack";
-import { WebAclStack } from "../lib/webAclStack";
-import { RemoteOutputStack } from "../lib/remoteOutputStack";
-import { existsSync } from "fs";
+import 'source-map-support/register';
+import * as cdk from 'aws-cdk-lib';
+import { EcsFargateStack } from '../lib/ecsFargateStack';
+import { SharedInfraStack } from '../lib/sharedInfraStack';
+import { config } from 'dotenv';
+import { CloudFrontStack } from '../lib/cloudFrontStack';
+import { WebAclStack } from '../lib/webAclStack';
+import { RemoteOutputStack } from '../lib/remoteOutputStack';
+import { existsSync } from 'fs';
 
-const envFile = "../.env";
+const envFile = '../.env';
 if (existsSync(envFile)) {
   config({
     path: envFile,
   });
 }
 const app = new cdk.App();
-const projectName = "NestJSCDKSample";
+const projectName = 'NestJSCDKSample';
 
 // VPC, ECR
-const infra = new SharedInfraStack(app, projectName + "CdkSharedInfraStack", {
+const infra = new SharedInfraStack(app, projectName + 'CdkSharedInfraStack', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
@@ -28,16 +28,17 @@ const infra = new SharedInfraStack(app, projectName + "CdkSharedInfraStack", {
 });
 
 // WebACL on us-east-1
-const webAcl = new WebAclStack(app, projectName + "WebAcl", {
+const webAcl = new WebAclStack(app, projectName + 'WebAcl', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: "us-east-1",
+    region: 'us-east-1',
   },
+  allowedAddresses: [process.env.ALLOWED_IP!],
 });
 
 // Outputs for cross region references
-new cdk.CfnOutput(webAcl, "WebAclArn", { value: webAcl.webAclArn });
-const remoteOutput = new RemoteOutputStack(app, projectName + "RemoteOutput", {
+new cdk.CfnOutput(webAcl, 'WebAclArn', { value: webAcl.webAclArn });
+const remoteOutput = new RemoteOutputStack(app, projectName + 'RemoteOutput', {
   webAcl,
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -48,7 +49,7 @@ const remoteOutput = new RemoteOutputStack(app, projectName + "RemoteOutput", {
 // CloudFront, ALB, Route53
 const cloudFrontStack = new CloudFrontStack(
   app,
-  projectName + "CdkCloudFrontStack",
+  projectName + 'CdkCloudFrontStack',
   {
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -59,11 +60,11 @@ const cloudFrontStack = new CloudFrontStack(
     vpc: infra.vpc,
     projectName,
     webAclArn: remoteOutput.webAclArn,
-  }
+  },
 );
 
 // ECS
-new EcsFargateStack(app, projectName + "CdkFargateStack", {
+new EcsFargateStack(app, projectName + 'CdkFargateStack', {
   targetGroup: cloudFrontStack.targetGroup,
   listener: cloudFrontStack.listener,
 

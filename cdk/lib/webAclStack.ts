@@ -1,33 +1,35 @@
-import { Stack, App, StackProps, aws_wafv2 as wafv2 } from 'aws-cdk-lib';
-import { CfnIPSet } from 'aws-cdk-lib/aws-wafv2';
+import { App, aws_wafv2 as wafv2, Stack, StackProps } from 'aws-cdk-lib';
 
+export interface WebAclStackProps extends StackProps {
+  allowedAddresses: string[];
+}
 export class WebAclStack extends Stack {
   public readonly webAclArn: string;
 
-  constructor(scope: App, id: string, props?: StackProps) {
+  constructor(scope: App, id: string, props: WebAclStackProps) {
     super(scope, id, props);
 
-    const whiteListIPSet = new wafv2.CfnIPSet(this, 'WhiteListIPSet', {
-      name: 'WhiteListIPSet',
-      addresses: ['109.236.7.68/32'],
+    const allowedListIPSet = new wafv2.CfnIPSet(this, 'AllowedListIPSet', {
+      name: 'AllowedListIPSet',
+      addresses: props.allowedAddresses,
       ipAddressVersion: 'IPV4',
       scope: 'CLOUDFRONT',
     });
 
-    const whiteListIPSetRuleProperty: wafv2.CfnWebACL.RuleProperty = {
+    const allowedListIPSetRuleProperty: wafv2.CfnWebACL.RuleProperty = {
       priority: 1,
-      name: 'WhiteListIPSetRule',
+      name: 'AllowedIPSetRule',
       action: {
         allow: {},
       },
       statement: {
         ipSetReferenceStatement: {
-          arn: whiteListIPSet.attrArn,
+          arn: allowedListIPSet.attrArn,
         },
       },
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
-        metricName: 'WhiteListIPSetRule',
+        metricName: 'AllowedListIPSetRule',
         sampledRequestsEnabled: true,
       },
     };
@@ -58,7 +60,7 @@ export class WebAclStack extends Stack {
             },
           },
         },
-        whiteListIPSetRuleProperty,
+        allowedListIPSetRuleProperty,
       ],
       scope: 'CLOUDFRONT',
       visibilityConfig: {
